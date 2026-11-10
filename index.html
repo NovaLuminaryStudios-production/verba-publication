@@ -959,7 +959,7 @@
       const slug = slugify(document.getElementById("storySlug").value);
       const publicationStatus = document.getElementById("storyStatus").value;
       if (!slug) throw new Error("Please enter a valid story URL name.");
-      let coverUrl = document.getElementById("storyCover").value.trim() || null;
+      let coverUrl = null;
       if (selectedCover) {
         status.textContent = "Uploading cover image…";
         coverUrl = await uploadCoverImage(selectedCover);
