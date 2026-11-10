@@ -135,6 +135,13 @@
       transition: border-color .2s, transform .2s;
     }
     .story-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+    .story-cover-link {
+      display: block; width: 100%; padding: 0; border: 0; background: transparent;
+      cursor: pointer; margin: -25px -25px 20px; width: calc(100% + 50px);
+    }
+    .story-cover { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; background: #24221d; }
+    .story-cover-placeholder { display: grid; place-items: center; aspect-ratio: 3 / 4; background: linear-gradient(145deg,#29261f,#141413); color: var(--gold); font: 500 42px "Cormorant Garamond",serif; letter-spacing: 5px; }
+    .reader-cover { display: block; width: min(100%, 420px); max-height: 560px; object-fit: contain; margin: 25px auto 35px; border: 1px solid var(--line); }
     .story-card .genre {
       color: var(--gold);
       font-size: 10px;
@@ -372,10 +379,11 @@
           </div>
           <input id="manuscriptFiles" type="file" multiple class="hidden">
           <div id="selectedFiles" class="file-list"></div>
-          <p class="upload-help">Supported text documents can be imported into the story editor automatically. Other files are securely stored as downloadable attachments for the editorial team.</p>
+          <p class="upload-help">Text-based manuscripts are extracted for the website reading view. Your original manuscript is stored privately for the editorial team.</p>
         </div>
 
-        <div class="field"><label for="storyContent">Full story</label><textarea id="storyContent" required style="min-height:300px" placeholder="Drop a supported manuscript above to import its text, or write/paste the story here…"></textarea></div>
+        <textarea id="storyContent" class="hidden" aria-hidden="true" tabindex="-1"></textarea>
+        <p class="upload-help">The manuscript will be used to create the reading view when its text can be extracted. The original file is also kept as an attachment.</p>
 
         <div class="field">
           <label for="coverFile">Cover image (optional)</label>
@@ -393,11 +401,6 @@
     <h3>Your stories</h3>
     <div id="adminStories" class="story-grid"></div>
     <div class="panel top-space"><h3>Uploaded files</h3><p class="muted">Private manuscript files and attachments. Only administrators can access these downloads.</p><div id="adminFiles"></div></div>
-    <div class="panel top-space">
-      <h3>Comment moderation</h3>
-      <p class="muted">Review comments before they appear publicly.</p>
-      <div id="moderationList"></div>
-    </div>
   </section>
 
   <section id="aboutPage" class="section hidden">
@@ -411,6 +414,7 @@
       <button class="text-button" onclick="showStories()">← Back to stories</button>
       <p id="readerGenre" class="gold top-space"></p>
       <h1 class="serif" id="readerTitle"></h1>
+      <img id="readerCover" class="reader-cover hidden" alt="Story cover">
       <p class="muted">By <button id="readerAuthor" class="text-button"></button></p>
       <p id="readerSynopsis" class="muted"></p>
       <div class="toolbar">
@@ -421,12 +425,12 @@
       <div id="readerContent" class="reader-content"></div>
       <div class="top-space" style="margin-top:60px">
         <h2>Thoughts & comments</h2>
-        <p class="muted">Comments are reviewed before appearing publicly.</p>
+        <p class="muted">Join the conversation. Comments appear immediately.</p>
         <div id="commentList"></div>
         <div id="commentFormWrap" class="panel top-space">
           <form id="commentForm" class="form">
             <div class="field"><label for="commentBody">Write a comment</label><textarea id="commentBody" required maxlength="2000" placeholder="Share your thoughts…"></textarea></div>
-            <button class="button" type="submit">Submit for review</button>
+            <button class="button" type="submit">Post comment</button>
             <p id="commentStatus" class="status"></p>
           </form>
           <p id="commentLoginNotice" class="muted hidden">Please sign in to leave a comment.</p>
@@ -463,6 +467,7 @@
   let authMode = "login";
   let selectedManuscripts = [];
   let selectedCover = null;
+  let manuscriptImportPromise = null;
 
   const pageIds = [
     "homePage", "storiesPage", "accountPage", "favoritesPage",
@@ -484,7 +489,6 @@
     showPage("adminPage");
     loadAdminStories();
     loadAdminFiles();
-    loadPendingComments();
   }
 
   function escapeHTML(value) {
@@ -499,8 +503,12 @@
   }
 
   function storyCard(story) {
+    const cover = story.cover_image_url
+      ? `<img class="story-cover" src="${escapeHTML(story.cover_image_url)}" alt="Cover of ${escapeHTML(story.title)}" loading="lazy">`
+      : `<div class="story-cover-placeholder" aria-label="No cover uploaded">VERBA</div>`;
     return `
       <article class="story-card">
+        <button class="story-cover-link" type="button" onclick="openStory('${story.id}')" aria-label="Open ${escapeHTML(story.title)}">${cover}</button>
         <span class="genre">${escapeHTML(story.genre || "General")}</span>
         <h3 class="serif">${escapeHTML(story.title)}</h3>
         <p class="synopsis">${escapeHTML(story.synopsis || "Discover this story from the VERBA collection.")}</p>
@@ -548,6 +556,15 @@
     currentStory = story;
     showPage("readerPage");
     document.getElementById("readerTitle").textContent = story.title;
+    const readerCover = document.getElementById("readerCover");
+    if (story.cover_image_url) {
+      readerCover.src = story.cover_image_url;
+      readerCover.alt = `Cover of ${story.title}`;
+      readerCover.classList.remove("hidden");
+    } else {
+      readerCover.removeAttribute("src");
+      readerCover.classList.add("hidden");
+    }
     document.getElementById("readerGenre").textContent = story.genre || "General";
     document.getElementById("readerSynopsis").textContent = story.synopsis || "";
     document.getElementById("readerContent").textContent = story.content;
@@ -634,10 +651,9 @@
 
     target.innerHTML = data.map(comment => {
       const author = profileMap[comment.user_id];
-      const ownPending = comment.status === "pending" && comment.user_id === currentUser?.id;
       return `<div class="comment">
         <strong>${escapeHTML(author?.display_name || "Reader")}</strong>
-        <span class="muted"> · ${ownPending ? "Awaiting moderation" : "Reader"}</span>
+        <span class="muted"> · Reader</span>
         <p>${escapeHTML(comment.body)}</p>
       </div>`;
     }).join("");
@@ -650,10 +666,10 @@
     if (!body) return;
     const { error } = await db.from("comments").insert({
       story_id: currentStory.id, user_id: currentUser.id,
-      body, status: "pending"
+      body, status: "approved"
     });
     document.getElementById("commentStatus").textContent = error
-      ? error.message : "Your comment has been submitted for review.";
+      ? error.message : "Your comment is now live.";
     if (!error) {
       document.getElementById("commentBody").value = "";
       loadComments();
@@ -827,7 +843,7 @@
     // Import the first readable manuscript if the story editor is still empty.
     if (!document.getElementById("storyContent").value.trim()) {
       const readable = selectedManuscripts.find(isExtractableDocument);
-      if (readable) importManuscript(readable);
+      if (readable) manuscriptImportPromise = importManuscript(readable);
     }
   }
 
@@ -888,7 +904,7 @@
       }
       if (!text.trim()) throw new Error("No selectable text was found. This may be a scanned document; upload it as an attachment and paste the text manually.");
       document.getElementById("storyContent").value = text.trim();
-      status.textContent = `Imported text from ${file.name}. Please review the formatting before publishing.`;
+      status.textContent = `Reading text from ${file.name} for the website reading view.`;
     } catch (error) {
       status.textContent = error.message;
     }
@@ -955,6 +971,11 @@
     submit.disabled = true;
     status.textContent = "Saving story and uploading files…";
     try {
+      if (manuscriptImportPromise) {
+        status.textContent = "Finishing manuscript text extraction…";
+        await manuscriptImportPromise;
+        manuscriptImportPromise = null;
+      }
       const title = document.getElementById("storyTitle").value.trim();
       const slug = slugify(document.getElementById("storySlug").value);
       const publicationStatus = document.getElementById("storyStatus").value;
@@ -1061,31 +1082,6 @@
     else { loadAdminStories(); loadAdminFiles(); loadStories(); }
   }
 
-  async function loadPendingComments() {
-    if (currentProfile?.role !== "admin") return;
-    const target = document.getElementById("moderationList");
-    const { data, error } = await db.from("comments")
-      .select("id,body,story_id,user_id,created_at,stories(title)")
-      .eq("status", "pending").order("created_at", { ascending: true });
-    if (error) { target.textContent = "Could not load comments."; return; }
-    if (!data?.length) { target.innerHTML = `<p class="empty">No comments waiting for review.</p>`; return; }
-
-    target.innerHTML = data.map(c => `<div class="comment">
-      <strong>${escapeHTML(c.stories?.title || "Story")}</strong>
-      <p>${escapeHTML(c.body)}</p>
-      <div class="toolbar">
-        <button class="button small" onclick="moderateComment('${c.id}','approved')">Approve</button>
-        <button class="button secondary small" onclick="moderateComment('${c.id}','rejected')">Reject</button>
-      </div>
-    </div>`).join("");
-  }
-
-  async function moderateComment(id, status) {
-    if (currentProfile?.role !== "admin") return;
-    const { error } = await db.from("comments").update({ status }).eq("id", id);
-    if (error) alert(error.message);
-    else loadPendingComments();
-  }
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
