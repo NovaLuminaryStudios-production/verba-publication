@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERBA — Every Word Holds a World</title>
+<meta name="description" content="VERBA is an independent literary publication celebrating stories, poetry and imagination.">
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #111110;
+  --panel: #191917;
+  --cream: #eee8dc;
+  --muted: #999286;
+  --gold: #b6a17c;
+  --line: #34312b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'Inter', sans-serif;
+}
+
+a { color: inherit; text-decoration: none; }
+
+header {
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8%;
+  border-bottom: 1px solid var(--line);
+}
+
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 35px;
+  letter-spacing: 9px;
+}
+
+nav { display: flex; gap: 35px; }
+
+nav a {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: .3s;
+}
+
+nav a:hover { color: var(--cream); }
+
+.hero {
+  min-height: 610px;
+  padding: 120px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.eyebrow {
+  color: var(--gold);
+  letter-spacing: 5px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  font-size: clamp(65px, 11vw, 125px);
+  letter-spacing: 15px;
+  margin: 28px 0 5px;
+}
+
+.hero .tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 27px;
+  color: #c9bdab;
+}
+
+.hero p {
+  max-width: 480px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 2;
+  margin-top: 25px;
+}
+
+.primary-button {
+  margin-top: 38px;
+  padding: 15px 30px;
+  border: 1px solid var(--gold);
+  color: var(--cream);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: .3s;
+}
+
+.primary-button:hover {
+  background: var(--gold);
+  color: #111;
+}
+
+.section {
+  padding: 90px 10%;
+  border-top: 1px solid var(--line);
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 45px;
+}
+
+.section-heading h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 400;
+}
+
+.section-heading span {
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 3px;
+}
+
+.featured {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  min-height: 350px;
+}
+
+.featured-art {
+  background:
+    linear-gradient(145deg, #28241e, #151412);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 100px;
+  color: #c6b18c;
+}
+
+.featured-info {
+  padding: 55px 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.category {
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.featured-info h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 55px;
+  font-weight: 400;
+  margin: 15px 0;
+}
+
+.featured-info p {
+  color: var(--muted);
+  line-height: 2;
+  font-size: 13px;
+}
+
+.read-link {
+  margin-top: 30px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.about {
+  text-align: center;
+  max-width: 750px;
+  margin: auto;
+}
+
+.about h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 55px;
+  font-weight: 400;
+  margin-bottom: 25px;
+}
+
+.about p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 2.2;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  padding: 40px 8%;
+  text-align: center;
+}
+
+footer .logo { font-size: 27px; }
+
+footer p {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-top: 12px;
+}
+
+@media(max-width:700px) {
+  header { padding: 0 5%; }
+  nav { gap: 14px; }
+  nav a { font-size: 9px; letter-spacing: 1px; }
+  .hero { min-height: 520px; }
+  .hero h1 { letter-spacing: 7px; }
+  .section { padding: 65px 6%; }
+  .featured { grid-template-columns: 1fr; }
+  .featured-art { min-height: 220px; }
+  .featured-info { padding: 35px 25px; }
+  .featured-info h3 { font-size: 43px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <a href="#" class="logo">VERBA</a>
+  <nav>
+    <a href="#home">Home</a>
+    <a href="#stories">Stories</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<main>
+<section class="hero" id="home">
+  <span class="eyebrow">An Independent Literary Publication</span>
+  <h1>VERBA</h1>
+  <div class="tagline">Every word holds a world.</div>
+  <p>
+    A collection of voices, imagination and stories.
+    Discover the worlds people create through words.
+  </p>
+  <a href="#stories" class="primary-button">Explore the Archive</a>
+</section>
+
+<section class="section" id="stories">
+  <div class="section-heading">
+    <h2>Selected Stories</h2>
+    <span>THE ARCHIVE</span>
+  </div>
+
+  <article class="featured">
+    <div class="featured-art">V.</div>
+    <div class="featured-info">
+      <span class="category">Featured Publication · Fiction</span>
+      <h3>Our First Story</h3>
+      <p>
+        Every publication begins with a story.
+        Our collection is being prepared. 
+        New worlds will find their place here.
+      </p>
+      <span class="read-link">Coming Soon</span>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="about">
+  <div class="about">
+    <span class="eyebrow">The Philosophy</span>
+    <h2>Every voice deserves to be heard.</h2>
+    <p>
+      VERBA is an independent literary publication
+      dedicated to discovering and preserving written
+      works. We welcome stories from different voices,
+      perspectives and imaginations.
+      Each submission is carefully reviewed before
+      becoming part of our collection.
+    </p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="logo">VERBA</div>
+  <p>EVERY WORD HOLDS A WORLD.</p>
+  <p style="margin-top:25px">© 2026 VERBA. ALL RIGHTS RESERVED.</p>
+</footer>
+
+</body>
+</html>
